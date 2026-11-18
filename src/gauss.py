@@ -1,10 +1,9 @@
 # Contadores globales (se reinician en cada corrida)
 cont = {}
 
-
 def reiniciar():
     cont.update(muldiv_pasos=[], addsub_pasos=[], muldiv_sust=0, addsub_sust=0,
-                comparaciones=0, intercambios=0, mult_max=0.0, a_max=0.0)
+                comparaciones=0, intercambios=0, mult_max=0, a_max=0)
 
 
 def eliminar_columna(A, B, i):
@@ -36,22 +35,38 @@ def sustitucion_regresiva(A, B):
 
 def gauss(A, B, pivoteo):
     """pivoteo=False: sin pivoteo. pivoteo=True: parcial (tu versión)."""
+    traza = []
     A = [f[:] for f in A]; B = B[:]
+    escalas = [
+    max(abs(valor) for valor in fila)
+    for fila in A
+    ]
     reiniciar()
     cont["a_max"] = max(abs(v) for f in A for v in f)
     a_max0 = cont["a_max"]
     for i in range(len(A) - 1):
-        if pivoteo:
-            idx = i
+        idx = i
+
+        if pivoteo=="parcial":
             for j in range(i + 1, len(A)):
                 cont["comparaciones"] += 1
                 if abs(A[j][i]) > abs(A[idx][i]):
                     idx = j
-            if idx != i:
-                A[i], A[idx] = A[idx], A[i]
-                B[i], B[idx] = B[idx], B[i]
-                cont["intercambios"] += 1
+        if pivoteo=="escalado":
+            for j in range(i + 1, len(A)):
+                cont["comparaciones"] += 1
+                ratio_j = abs(A[j][i] / escalas[j])
+                ratio_idx = abs(A[idx][i] / escalas[idx])
+                if ratio_j > ratio_idx:
+                    idx = j
+        if idx != i:
+            A[i], A[idx] = A[idx], A[i]
+            B[i], B[idx] = B[idx], B[i]
+            cont["intercambios"] += 1
         eliminar_columna(A, B, i)
+        matriz = []
+        for fila in A: matriz.append(fila[:])
+        traza.append(matriz)
     x = sustitucion_regresiva(A, B)
     crecimiento = cont["a_max"] / a_max0
-    return x, crecimiento
+    return x, crecimiento, traza, cont.copy()
