@@ -2,6 +2,7 @@ import csv
 import gauss
 import conteo
 import estabilidad
+import verificacion
 import numpy as np
 
 def leer_archivos(ruta, matriz=False):
@@ -45,5 +46,10 @@ if __name__ == "__main__":
 
         print(f"\nFactor de crecimiento: {crecimiento:.6e}")
         print(f"Pasos de eliminación: {len(traza)}")
+
+        residuo = verificacion.calcular_residuo(A, B, x)
+        norma = verificacion.norma_infinito(residuo)
+
+        print(f"Norma del residuo: {norma:.6e}")
 
         conteo.mostrar_conteo(cont)
