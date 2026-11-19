@@ -1,7 +1,8 @@
-
 import csv
 import gauss
 import conteo
+import estabilidad
+import numpy as np
 
 def leer_archivos(ruta, matriz=False):
     with open(ruta, newline="") as archivo:
@@ -21,9 +22,18 @@ if __name__ == "__main__":
 
     A = leer_archivos(rutas[0], True)
     B = leer_archivos(rutas[1])
+    x_ref = np.linalg.solve(
+        np.array(A, dtype=float),
+        np.array(B, dtype=float)
+    )
 
     for metodo in ("ninguno", "parcial", "escalado"):
         x, crecimiento, traza, cont = gauss.gauss(A, B, metodo)
+        error = estabilidad.error_relativo(x, x_ref)
+
+        print(f"Maximo multiplicador: {cont['mult_max']:.6e}")
+        print(f"Factor de crecimiento: {crecimiento:.6e}")
+        print(f"Error relativo: {error:.6e}")
 
         print(f"\n{'=' * 40}")
         print(f"Método: {metodo}")

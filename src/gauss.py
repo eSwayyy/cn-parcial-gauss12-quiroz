@@ -10,11 +10,14 @@ def eliminar_columna(A, B, i):
     n = len(A)
     md = ad = 0
     for j in range(i + 1, n):
-        m = A[j][i] / A[i][i]; md += 1          # multiplicador: una vez por fila
+        m = A[j][i] / A[i][i]
+        md += 1
         cont["mult_max"] = max(cont["mult_max"], abs(m))
-        A[j][i] = 0.0                           # ya se sabe que queda en cero
-        for k in range(i + 1, n):               # desde i+1, no desde i
-            A[j][k] = A[j][k] - m * A[i][k]; md += 1; ad += 1
+        A[j][i] = 0.0
+        for k in range(i + 1, n):
+            A[j][k] = A[j][k] - m * A[i][k]
+            md += 1
+            ad += 1
             cont["a_max"] = max(cont["a_max"], abs(A[j][k]))
         B[j] = B[j] - m * B[i]; md += 1; ad += 1
     cont["muldiv_pasos"].append(md)
@@ -55,13 +58,14 @@ def gauss(A, B, pivoteo):
         if pivoteo=="escalado":
             for j in range(i + 1, len(A)):
                 cont["comparaciones"] += 1
-                ratio_j = abs(A[j][i] / escalas[j])
-                ratio_idx = abs(A[idx][i] / escalas[idx])
+                ratio_j = abs(A[j][i]) / escalas[j]
+                ratio_idx = abs(A[idx][i]) / escalas[idx]
                 if ratio_j > ratio_idx:
                     idx = j
         if idx != i:
             A[i], A[idx] = A[idx], A[i]
             B[i], B[idx] = B[idx], B[i]
+            escalas[i], escalas[idx] = escalas[idx], escalas[i]
             cont["intercambios"] += 1
         eliminar_columna(A, B, i)
         matriz = []
