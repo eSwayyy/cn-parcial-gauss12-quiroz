@@ -1,16 +1,19 @@
 # Contadores globales (se reinician en cada corrida)
 cont = {}
 
+
+
 def reiniciar():
     cont.update(muldiv_pasos=[], addsub_pasos=[], muldiv_sust=0, addsub_sust=0,
                 comparaciones=0, intercambios=0, mult_max=0, a_max=0)
 
 
-def eliminar_columna(A, B, i):
+def eliminar_columna(A, B, L, i):
     n = len(A)
     md = ad = 0
     for j in range(i + 1, n):
         m = A[j][i] / A[i][i]
+        L[j][i] = m
         md += 1
         cont["mult_max"] = max(cont["mult_max"], abs(m))
         A[j][i] = 0.0
@@ -40,6 +43,15 @@ def gauss(A, B, pivoteo):
     """pivoteo=False: sin pivoteo. pivoteo=True: parcial (tu versión)."""
     traza = []
     A = [f[:] for f in A]; B = B[:]
+    L = []
+    permutacion = []
+
+    for i in range(len(A)):
+        fila = [0] * len(A)
+        fila[i] = 1
+        L.append(fila)
+
+        permutacion.append(i)
     escalas = [
     max(abs(valor) for valor in fila)
     for fila in A
@@ -66,11 +78,16 @@ def gauss(A, B, pivoteo):
             A[i], A[idx] = A[idx], A[i]
             B[i], B[idx] = B[idx], B[i]
             escalas[i], escalas[idx] = escalas[idx], escalas[i]
+            permutacion[i], permutacion[idx] = permutacion[idx], permutacion[i]
+
+            for k in range(i):
+                L[i][k], L[idx][k] = L[idx][k], L[i][k]
+
             cont["intercambios"] += 1
-        eliminar_columna(A, B, i)
+        eliminar_columna(A, B, L, i)
         matriz = []
         for fila in A: matriz.append(fila[:])
         traza.append(matriz)
     x = sustitucion_regresiva(A, B)
     crecimiento = cont["a_max"] / a_max0
-    return x, crecimiento, traza, cont.copy()
+    return x, crecimiento, traza, cont.copy(), L, A, permutacion

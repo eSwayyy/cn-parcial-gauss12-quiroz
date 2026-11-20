@@ -1,7 +1,6 @@
 import csv
 import gauss
 import conteo
-import estabilidad
 import verificacion
 import numpy as np
 
@@ -28,28 +27,51 @@ if __name__ == "__main__":
         np.array(B, dtype=float)
     )
 
+    archivo_solucion = open("resultados/solucion.csv", "w", newline="", encoding="utf-8")
+    archivo_traza = open("resultados/traza_eliminacion.txt", "w", encoding="utf-8")
+    archivo_residuo = open("resultados/residuo.txt", "w", encoding="utf-8")
+    with open("resultados/conteo_flops.md", "w", encoding="utf-8") as archivo:
+        archivo.write("# Conteo de operaciones\n")
+
+    escritor = csv.writer(archivo_solucion)
+    escritor.writerow(["metodo", "incognita", "valor"])
+
     for metodo in ("ninguno", "parcial", "escalado"):
-        x, crecimiento, traza, cont = gauss.gauss(A, B, metodo)
-        error = estabilidad.error_relativo(x, x_ref)
+        x, crecimiento, traza, cont, L, U, permutacion = gauss.gauss(A, B, metodo)
+        x_refinado, r_antes, r_despues = verificacion.correccion_iterativa(A, B, x, L, U, permutacion)
 
-        print(f"Maximo multiplicador: {cont['mult_max']:.6e}")
-        print(f"Factor de crecimiento: {crecimiento:.6e}")
-        print(f"Error relativo: {error:.6e}")
+        for i in range(len(x)):
+            escritor.writerow([metodo, f"x{i+1}", format(x[i], ".17g")])
 
-        print(f"\n{'=' * 40}")
-        print(f"Método: {metodo}")
-        print(f"{'=' * 40}")
+        archivo_traza.write(f"\nMETODO: {metodo}\n")
+        for i in range(len(traza)):
+            archivo_traza.write(f"\nPaso {i+1}\n")
 
-        print("\nSolución:")
-        for i, valor in enumerate(x):
-            print(f"x{i+1} = {valor:.12g}")
+            for fila in traza[i]:
+                for valor in fila:
+                    archivo_traza.write(f"{valor:.12e} ")
+                archivo_traza.write("\n")
+        conteo.mostrar_conteo(cont, metodo)
 
-        print(f"\nFactor de crecimiento: {crecimiento:.6e}")
-        print(f"Pasos de eliminación: {len(traza)}")
+        archivo_residuo.write(f"\nMETODO: {metodo}\n")
 
-        residuo = verificacion.calcular_residuo(A, B, x)
-        norma = verificacion.norma_infinito(residuo)
+        archivo_residuo.write("\nResiduo antes del refinamiento:\n")
 
-        print(f"Norma del residuo: {norma:.6e}")
+        for i in range(len(r_antes)):
+            archivo_residuo.write(f"r{i+1} = {r_antes[i]}\n")
 
-        conteo.mostrar_conteo(cont)
+        archivo_residuo.write(
+            f"Norma infinito antes: {verificacion.norma_infinito(r_antes)}\n"
+        )
+
+        archivo_residuo.write("\nResiduo despues del refinamiento:\n")
+
+        for i in range(len(r_despues)):
+            archivo_residuo.write(f"r{i+1} = {r_despues[i]}\n")
+
+        archivo_residuo.write(
+            f"Norma infinito despues: {verificacion.norma_infinito(r_despues)}\n"
+        )
+    archivo_solucion.close()
+    archivo_traza.close()
+    archivo_residuo.close()
